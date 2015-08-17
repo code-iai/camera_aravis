@@ -16,8 +16,6 @@ catkin_package(
 
 include_directories(cfg/cpp ${catkin_INCLUDE_DIRS} ${ARAVIS_INCLUDE_PATH} ${GLIB2_INCLUDE_DIRS})
 
-message(${ARAVIS_LIBRARY})
-
 add_executable(camnode src/camnode.cpp)
 
 target_link_libraries(camnode ${catkin_LIBRARIES} ${ARAVIS_LIBRARY} glib-2.0 gmodule-2.0 gobject-2.0)
