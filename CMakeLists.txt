@@ -22,3 +22,10 @@ add_executable(camnode src/camnode.cpp)
 
 target_link_libraries(camnode ${catkin_LIBRARIES} ${ARAVIS_LIBRARY} glib-2.0 gmodule-2.0 gobject-2.0)
 add_dependencies(camnode ${PROJECT_NAME}_gencfg)
+
+## Mark executables and/or libraries for installation
+install(TARGETS camnode
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
