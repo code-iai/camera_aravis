@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs image_transport camer
 find_package(Aravis REQUIRED)
 find_package(GLIB2 REQUIRED)
 
-generate_dynamic_reconfigure_options(cfg/CameraAravisConfig.cfg)
+generate_dynamic_reconfigure_options(cfg/CameraAravis.cfg)
 catkin_package(
     DEPENDS Aravis GLIB2
     CATKIN_DEPENDS roscpp sensor_msgs image_transport camera_info_manager dynamic_reconfigure driver_base tf
@@ -16,14 +16,18 @@ catkin_package(
 
 include_directories(cfg/cpp ${catkin_INCLUDE_DIRS} ${ARAVIS_INCLUDE_PATH} ${GLIB2_INCLUDE_DIRS})
 
+message(${ARAVIS_LIBRARY})
+
 add_executable(camnode src/camnode.cpp)
 
 target_link_libraries(camnode ${catkin_LIBRARIES} ${ARAVIS_LIBRARY} glib-2.0 gmodule-2.0 gobject-2.0)
 add_dependencies(camnode ${PROJECT_NAME}_gencfg)
 
-## Mark executables and/or libraries for installation
 install(TARGETS camnode
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+#install(DIRECTORY cfg/cpp/camera_aravis/
+#  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#  FILES_MATCHING PATTERN "*.h")
