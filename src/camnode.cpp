@@ -84,7 +84,7 @@ struct global_s
 	int										isImplementedAcquisitionFrameRate;
 	int										isImplementedAcquisitionFrameRateEnable;
 	int										isImplementedGain;
-	int										isImplementedExposureTimeAbs;
+	int										isImplementedExposureTime;
 	int										isImplementedExposureAuto;
 	int										isImplementedGainAuto;
 	int										isImplementedFocusPos;
@@ -202,7 +202,7 @@ void RosReconfigure_callback(Config &config, uint32_t level)
     int             changedAcquisitionFrameRate;
     int             changedExposureAuto;
     int             changedGainAuto;
-    int             changedExposureTimeAbs;
+    int             changedExposureTime;
     int             changedGain;
     int             changedAcquisitionMode;
     int             changedTriggerMode;
@@ -224,7 +224,7 @@ void RosReconfigure_callback(Config &config, uint32_t level)
     changedAcquire    			= (global.config.Acquire != config.Acquire);
     changedAcquisitionFrameRate = (global.config.AcquisitionFrameRate != config.AcquisitionFrameRate);
     changedExposureAuto 		= (global.config.ExposureAuto != config.ExposureAuto);
-    changedExposureTimeAbs  	= (global.config.ExposureTimeAbs != config.ExposureTimeAbs);
+    changedExposureTime  	= (global.config.ExposureTime != config.ExposureTime);
     changedGainAuto     		= (global.config.GainAuto != config.GainAuto);
     changedGain         		= (global.config.Gain != config.Gain);
     changedAcquisitionMode 		= (global.config.AcquisitionMode != config.AcquisitionMode);
@@ -238,18 +238,18 @@ void RosReconfigure_callback(Config &config, uint32_t level)
 
     // Limit params to legal values.
     config.AcquisitionFrameRate = CLIP(config.AcquisitionFrameRate, global.configMin.AcquisitionFrameRate, 	global.configMax.AcquisitionFrameRate);
-    config.ExposureTimeAbs   	= CLIP(config.ExposureTimeAbs,  	global.configMin.ExposureTimeAbs,  		global.configMax.ExposureTimeAbs);
+    config.ExposureTime   	= CLIP(config.ExposureTime,  	global.configMin.ExposureTime,  		global.configMax.ExposureTime);
     config.Gain          		= CLIP(config.Gain,         		global.configMin.Gain,         			global.configMax.Gain);
     config.FocusPos       		= CLIP(config.FocusPos,      		global.configMin.FocusPos,      		global.configMax.FocusPos);
     global.resolvedFrameid		= tf::resolve(tf_prefix, config.frame_id);
 
 
     // Adjust other controls dependent on what the user changed.
-    if (changedExposureTimeAbs || changedGainAuto || ((changedAcquisitionFrameRate || changedGain || changedFrameid
+    if (changedExposureTime || changedGainAuto || ((changedAcquisitionFrameRate || changedGain || changedFrameid
 					|| changedAcquisitionMode || changedTriggerSource || changedSoftwarerate) && config.ExposureAuto=="Once"))
     	config.ExposureAuto = "Off";
 
-    if (changedGain || changedExposureAuto || ((changedAcquisitionFrameRate || changedExposureTimeAbs || changedFrameid
+    if (changedGain || changedExposureAuto || ((changedAcquisitionFrameRate || changedExposureTime || changedFrameid
 					|| changedAcquisitionMode || changedTriggerSource || changedSoftwarerate) && config.GainAuto=="Once"))
     	config.GainAuto = "Off";
 
@@ -261,7 +261,7 @@ void RosReconfigure_callback(Config &config, uint32_t level)
     changedAcquire    			= (global.config.Acquire != config.Acquire);
     changedAcquisitionFrameRate = (global.config.AcquisitionFrameRate != config.AcquisitionFrameRate);
     changedExposureAuto 		= (global.config.ExposureAuto != config.ExposureAuto);
-    changedExposureTimeAbs     	= (global.config.ExposureTimeAbs != config.ExposureTimeAbs);
+    changedExposureTime     	= (global.config.ExposureTime != config.ExposureTime);
     changedGainAuto     		= (global.config.GainAuto != config.GainAuto);
     changedGain            		= (global.config.Gain != config.Gain);
     changedAcquisitionMode 		= (global.config.AcquisitionMode != config.AcquisitionMode);
@@ -274,15 +274,15 @@ void RosReconfigure_callback(Config &config, uint32_t level)
 
     
     // Set params into the camera.
-    if (changedExposureTimeAbs)
+    if (changedExposureTime)
     {
-    	if (global.isImplementedExposureTimeAbs)
+    	if (global.isImplementedExposureTime)
 		{
-			ROS_INFO ("Set ExposureTimeAbs = %f", config.ExposureTimeAbs);
-			arv_device_set_float_feature_value (global.pDevice, "ExposureTimeAbs", config.ExposureTimeAbs);
+			ROS_INFO ("Set ExposureTime = %f", config.ExposureTime);
+			arv_device_set_float_feature_value (global.pDevice, "ExposureTime", config.ExposureTime);
 		}
     	else
-    		ROS_INFO ("Camera does not support ExposureTimeAbs.");
+    		ROS_INFO ("Camera does not support ExposureTime.");
     }
 
     if (changedGain)
@@ -299,15 +299,15 @@ void RosReconfigure_callback(Config &config, uint32_t level)
 
     if (changedExposureAuto)
     {
-    	if (global.isImplementedExposureAuto && global.isImplementedExposureTimeAbs)
+    	if (global.isImplementedExposureAuto && global.isImplementedExposureTime)
 		{
 			ROS_INFO ("Set ExposureAuto = %s", config.ExposureAuto.c_str());
 			arv_device_set_string_feature_value (global.pDevice, "ExposureAuto", config.ExposureAuto.c_str());
 			if (config.ExposureAuto=="Once")
 			{
 				ros::Duration(2.0).sleep();
-				config.ExposureTimeAbs = arv_device_get_float_feature_value (global.pDevice, "ExposureTimeAbs");
-				ROS_INFO ("Get ExposureTimeAbs = %f", config.ExposureTimeAbs);
+				config.ExposureTime = arv_device_get_float_feature_value (global.pDevice, "ExposureTime");
+				ROS_INFO ("Get ExposureTime = %f", config.ExposureTime);
 				config.ExposureAuto = "Off";
 			}
 		}
@@ -980,8 +980,8 @@ int main(int argc, char** argv)
 		pGcNode = arv_device_get_feature (global.pDevice, "Gain");
 		global.isImplementedGain |= ARV_GC_FEATURE_NODE (pGcNode) ? arv_gc_feature_node_is_implemented (ARV_GC_FEATURE_NODE (pGcNode), &error) : FALSE;
 
-		pGcNode = arv_device_get_feature (global.pDevice, "ExposureTimeAbs");
-		global.isImplementedExposureTimeAbs = ARV_GC_FEATURE_NODE (pGcNode) ? arv_gc_feature_node_is_implemented (ARV_GC_FEATURE_NODE (pGcNode), &error) : FALSE;
+		pGcNode = arv_device_get_feature (global.pDevice, "ExposureTime");
+		global.isImplementedExposureTime = ARV_GC_FEATURE_NODE (pGcNode) ? arv_gc_feature_node_is_implemented (ARV_GC_FEATURE_NODE (pGcNode), &error) : FALSE;
 
 		pGcNode = arv_device_get_feature (global.pDevice, "ExposureAuto");
 		global.isImplementedExposureAuto = ARV_GC_FEATURE_NODE (pGcNode) ? arv_gc_feature_node_is_implemented (ARV_GC_FEATURE_NODE (pGcNode), &error) : FALSE;
@@ -1022,7 +1022,7 @@ int main(int argc, char** argv)
 
 
 		// Get parameter bounds.
-		arv_camera_get_exposure_time_bounds	(global.pCamera, &global.configMin.ExposureTimeAbs, &global.configMax.ExposureTimeAbs);
+		arv_camera_get_exposure_time_bounds	(global.pCamera, &global.configMin.ExposureTime, &global.configMax.ExposureTime);
 		arv_camera_get_gain_bounds			(global.pCamera, &global.configMin.Gain, &global.configMax.Gain);
 		arv_camera_get_sensor_size			(global.pCamera, &global.widthSensor, &global.heightSensor);
 		arv_camera_get_width_bounds			(global.pCamera, &global.widthRoiMin, &global.widthRoiMax);
@@ -1046,8 +1046,8 @@ int main(int argc, char** argv)
 
 
 		// Initial camera settings.
-		if (global.isImplementedExposureTimeAbs)
-			arv_device_set_float_feature_value(global.pDevice, "ExposureTimeAbs", global.config.ExposureTimeAbs);
+		if (global.isImplementedExposureTime)
+			arv_device_set_float_feature_value(global.pDevice, "ExposureTime", global.config.ExposureTime);
 		if (global.isImplementedGain)
 			arv_camera_set_gain(global.pCamera, global.config.Gain);
 			//arv_device_set_integer_feature_value(global.pDevice, "GainRaw", global.config.GainRaw);
@@ -1093,7 +1093,7 @@ int main(int argc, char** argv)
 		// Get parameter current values.
 		global.xRoi=0; global.yRoi=0; global.widthRoi=0; global.heightRoi=0;
 		arv_camera_get_region (global.pCamera, &global.xRoi, &global.yRoi, &global.widthRoi, &global.heightRoi);
-		global.config.ExposureTimeAbs 	= global.isImplementedExposureTimeAbs ? arv_device_get_float_feature_value (global.pDevice, "ExposureTimeAbs") : 0;
+		global.config.ExposureTime 	= global.isImplementedExposureTime ? arv_device_get_float_feature_value (global.pDevice, "ExposureTime") : 0;
 		global.config.Gain      		= global.isImplementedGain ? arv_camera_get_gain (global.pCamera) : 0.0;
 		global.pszPixelformat           = GetPixelEncoding(arv_camera_get_pixel_format(global.pCamera));
 		if(!global.pszPixelformat)
@@ -1126,11 +1126,11 @@ int main(int argc, char** argv)
 			ROS_INFO ("    AcquisitionFrameRate = %g hz", global.config.AcquisitionFrameRate);
 		}
 
-		ROS_INFO ("    Can set Exposure:      %s", global.isImplementedExposureTimeAbs ? "True" : "False");
-		if (global.isImplementedExposureTimeAbs)
+		ROS_INFO ("    Can set Exposure:      %s", global.isImplementedExposureTime ? "True" : "False");
+		if (global.isImplementedExposureTime)
 		{
 			ROS_INFO ("    Can set ExposureAuto:  %s", global.isImplementedExposureAuto ? "True" : "False");
-			ROS_INFO ("    Exposure             = %g us in range [%g,%g]", global.config.ExposureTimeAbs, global.configMin.ExposureTimeAbs, global.configMax.ExposureTimeAbs);
+			ROS_INFO ("    Exposure             = %g us in range [%g,%g]", global.config.ExposureTime, global.configMin.ExposureTime, global.configMax.ExposureTime);
 		}
 
 		ROS_INFO ("    Can set Gain:          %s", global.isImplementedGain ? "True" : "False");
