@@ -115,6 +115,7 @@ struct global_s
 	int										mtu;
 	int										Acquire;
 	const char							   *keyAcquisitionFrameRate;
+        int64_t transmission_delay;
 #ifdef TUNING			
 	ros::Publisher 							*ppubInt64;
 #endif
@@ -541,7 +542,9 @@ static void NewBuffer_callback (ArvStream *pStream, ApplicationData *pApplicatio
 			if (iFrame < 10)
 			{
 				cm = cn;
-				tm  = rn;
+				//ROS_WARN("before %16ld", rn);
+				tm  = (uint64_t)((int64_t)rn - global.transmission_delay);
+				//ROS_WARN("after %16ld", tm);
 			}
 			
 			// Control the error between the computed image timestamp and the ROS timestamp.
@@ -951,6 +954,12 @@ int main(int argc, char** argv)
     		else
     			pszGuid = NULL;
     	}
+	
+	//Get transmission delay from parameter server.
+	float transmission_delay;
+	global.phNode->param<float>("transmission_delay", transmission_delay, 0.0);
+	ROS_INFO("Set transmission delay to %f ms", transmission_delay);
+	global.transmission_delay = (int64_t)(transmission_delay*1000000);
     	
     	// Open the camera, and set it up.
     	ROS_INFO("Opening: %s", pszGuid ? pszGuid : "(any)");
